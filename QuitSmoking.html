@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Livre — Pare de Fumar</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f0e;
+    --surface: #141714;
+    --card: #1a1d1a;
+    --border: #2a2f2a;
+    --accent: #7ec98f;
+    --accent-dim: #4a8a5a;
+    --warn: #e8a87c;
+    --text: #e8ede9;
+    --text-muted: #7a8a7c;
+    --text-faint: #3d4a3e;
+    --smoke: #3a3f3a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 20%, #1a2e1c22 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 80% 80%, #0e1f1022 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .grain {
+    position: fixed;
+    inset: 0;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    margin-bottom: 56px;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .logo-mark {
+    display: inline-block;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1.5px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    position: relative;
+  }
+
+  .logo-mark svg {
+    width: 22px;
+    height: 22px;
+    stroke: var(--accent);
+    fill: none;
+    stroke-width: 1.5;
+  }
+
+  .logo-pulse {
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 1px solid var(--accent);
+    opacity: 0;
+    animation: pulse 3s ease-out infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: 0.4; }
+    100% { transform: scale(1.5); opacity: 0; }
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--text);
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    margin-top: 12px;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    font-weight: 300;
+    letter-spacing: 0.02em;
+  }
+
+  /* Setup screen */
+  #setup-screen {
+    animation: fadeUp 0.9s 0.1s ease both;
+  }
+
+  .setup-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+  }
+
+  .setup-card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+    margin-bottom: 8px;
+  }
+
+  .setup-card p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 32px;
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+  }
+
+  label {
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    display: block;
+    text-align: left;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  input[type="text"], input[type="datetime-local"] {
+    width: 100%;
+    max-width: 320px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus {
+    border-color: var(--accent-dim);
+  }
+
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.6) sepia(1) hue-rotate(80deg);
+    cursor: pointer;
+  }
+
+  .btn-primary {
+    margin-top: 8px;
+    background: var(--accent);
+    color: #0d1a0f;
+    border: none;
+    border-radius: 50px;
+    padding: 14px 40px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.02em;
+  }
+
+  .btn-primary:hover {
+    background: #9ad8a8;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px #7ec98f22;
+  }
+
+  /* Dashboard */
+  #dashboard {
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  #dashboard.visible { display: flex; }
+
+  /* Timer card */
+  .timer-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 48px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .timer-card::before {
+    content: '';
+    position: absolute;
+    top: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, #7ec98f0a 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .user-greeting {
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+  }
+
+  .timer-display {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 24px 0 32px;
+  }
+
+  .time-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .time-value {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 500;
+    color: var(--accent);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .time-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .time-separator {
+    font-family: 'DM Mono', monospace;
+    font-size: 2.5rem;
+    color: var(--text-faint);
+    align-self: flex-start;
+    margin-top: 4px;
+    padding: 0 4px;
+  }
+
+  .since-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .since-label span {
+    color: var(--accent-dim);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Stats grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 20px;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+
+  .stat-card:hover { border-color: var(--accent-dim); }
+
+  .stat-icon {
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+  }
+
+  .stat-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    letter-spacing: 0.04em;
+  }
+
+  /* Milestone */
+  .milestone-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 28px;
+  }
+
+  .milestone-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .milestone-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+  }
+
+  .milestone-badge {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: #7ec98f12;
+    border: 1px solid #7ec98f30;
+    border-radius: 20px;
+    padding: 4px 12px;
+  }
+
+  .milestone-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .milestone-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    transition: background 0.2s;
+  }
+
+  .milestone-item.achieved {
+    background: #7ec98f0a;
+  }
+
+  .milestone-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid var(--text-faint);
+    flex-shrink: 0;
+  }
+
+  .milestone-item.achieved .milestone-dot {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 8px #7ec98f66;
+  }
+
+  .milestone-text {
+    flex: 1;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+  }
+
+  .milestone-item.achieved .milestone-text {
+    color: var(--text);
+  }
+
+  .milestone-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-faint);
+  }
+
+  .milestone-item.achieved .milestone-time {
+    color: var(--accent-dim);
+  }
+
+  /* Motivation card */
+  .quote-card {
+    background: linear-gradient(135deg, #1a2e1c, #141714);
+    border: 1px solid #2a4a2c;
+    border-radius: 16px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .quote-card::before {
+    content: '"';
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    font-family: 'Playfair Display', serif;
+    font-size: 8rem;
+    color: #7ec98f0e;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .quote-text {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--text);
+    position: relative;
+  }
+
+  .quote-author {
+    margin-top: 14px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+  }
+
+  /* Reset */
+  .danger-zone {
+    text-align: center;
+    margin-top: 12px;
+  }
+
+  .btn-ghost {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 10px 28px;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-ghost:hover {
+    border-color: #c0392b55;
+    color: #e57368;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #00000088;
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.visible { display: flex; }
+
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px;
+    max-width: 380px;
+    width: 90%;
+    text-align: center;
+    animation: fadeUp 0.3s ease;
+  }
+
+  .modal h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 400;
+    margin-bottom: 10px;
+  }
+
+  .modal p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .btn-danger {
+    background: #c0392b;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 28px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-danger:hover { background: #e74c3c; }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Responsive */
+  @media (max-width: 500px) {
+    .stats-grid { grid-template-columns: repeat(3, 1fr); }
+    .timer-display { gap: 8px; }
+    .timer-card { padding: 36px 20px; }
+    .setup-card { padding: 28px 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<div class="container">
+  <header>
+    <div class="logo-mark">
+      <div class="logo-pulse"></div>
+      <svg viewBox="0 0 24 24"><path d="M12 22c5.5-3 9-7.5 9-12A9 9 0 0 0 3 10c0 4.5 3.5 9 9 12z" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 8v4l2 2" stroke-linecap="round"/></svg>
+    </div>
+    <h1>Sua jornada <em>livre</em></h1>
+    <p class="subtitle">Cada segundo sem fumar é uma vitória.</p>
+  </header>
+
+  <!-- Setup -->
+  <div id="setup-screen">
+    <div class="setup-card">
+      <h2>Vamos começar</h2>
+      <p>Informe seu nome e quando parou de fumar para iniciar o contador.</p>
+      <div class="input-group">
+        <div style="width:100%;max-width:320px">
+          <label>Seu nome</label>
+          <input type="text" id="input-name" placeholder="Ex: João" />
+        </div>
+        <div style="width:100%;max-width:320px">
+          <label>Data e hora que parou de fumar</label>
+          <input type="datetime-local" id="input-date" />
+        </div>
+        <button class="btn-primary" onclick="startJourney()">Começar minha jornada →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard">
+    <div class="timer-card">
+      <div class="user-greeting" id="greeting"></div>
+      <div class="timer-display">
+        <div class="time-unit">
+          <div class="time-value" id="t-days">00</div>
+          <div class="time-label">Dias</div>
+        </div>
+        <div class="time-unit">
+          <div class="time-value" id="t-hours">00</div>
+          <div class="time-label">Horas</div>
+        </div>
+        <div class="time-unit">
+          <div class="time-value" id="t-mins">00</div>
+          <div class="time-label">Minutos</div>
+        </div>
+        <div class="time-unit">
+          <div class="time-value" id="t-secs">00</div>
+          <div class="time-label">Segundos</div>
+        </div>
+      </div>
+      <div class="since-label">Livre desde <span id="since-date"></span></div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">🚬</div>
+        <div class="stat-value" id="stat-cigarros">0</div>
+        <div class="stat-label">Cigarros não fumados</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-value" id="stat-dinheiro">R$0</div>
+        <div class="stat-label">Economizados</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">❤️</div>
+        <div class="stat-value" id="stat-vida">+0h</div>
+        <div class="stat-label">Vida recuperada</div>
+      </div>
+    </div>
+
+    <div class="milestone-card">
+      <div class="milestone-header">
+        <div class="milestone-title">Marcos da liberdade</div>
+        <div class="milestone-badge" id="milestone-count">0 alcançados</div>
+      </div>
+      <div class="milestone-list" id="milestone-list"></div>
+    </div>
+
+    <div class="quote-card">
+      <div class="quote-text" id="quote-text"></div>
+      <div class="quote-author" id="quote-author"></div>
+    </div>
+
+    <div class="danger-zone">
+      <button class="btn-ghost" onclick="showResetModal()">Recomeçar do zero</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reset Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3>Tem certeza?</h3>
+    <p>Isso vai apagar todo o seu progresso. Se recaiu, tudo bem — o importante é recomeçar. Cada tentativa conta.</p>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="hideResetModal()">Cancelar</button>
+      <button class="btn-danger" onclick="resetJourney()">Recomeçar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'quit_smoking_data';
+const CIGARROS_DIA = 20;      // cigarros por dia (média)
+const PRECO_MACO = 13.00;     // R$ por maço (20 cigarros)
+const MIN_POR_CIGARRO = 11;   // minutos de vida perdidos por cigarro
+
+const MILESTONES = [
+  { label: 'Primeiros 20 minutos — pressão arterial normaliza',    minutes: 20 },
+  { label: '8 horas — oxigênio no sangue volta ao normal',         minutes: 8 * 60 },
+  { label: '24 horas — risco de infarto já começa a cair',         minutes: 24 * 60 },
+  { label: '48 horas — nervos olfativos se regeneram',             minutes: 48 * 60 },
+  { label: '1 semana — circulação significativamente melhor',      minutes: 7 * 24 * 60 },
+  { label: '2 semanas — função pulmonar aumentando',               minutes: 14 * 24 * 60 },
+  { label: '1 mês — tosse e falta de ar reduzidas',                minutes: 30 * 24 * 60 },
+  { label: '3 meses — pulmões funcionando 30% melhor',             minutes: 90 * 24 * 60 },
+  { label: '1 ano — risco cardiovascular caiu pela metade',        minutes: 365 * 24 * 60 },
+  { label: '5 anos — risco de AVC igual a não-fumante',            minutes: 5 * 365 * 24 * 60 },
+];
+
+const QUOTES = [
+  { text: 'A força que você precisa já está dentro de você. O cigarro nunca foi mais forte que a sua vontade.', author: '— Anônimo' },
+  { text: 'Cada dia sem fumar é um presente que você dá ao seu futuro.', author: '— Provérbio da recuperação' },
+  { text: 'Você não está perdendo algo. Você está ganhando sua vida de volta.', author: '— Allen Carr' },
+  { text: 'A liberdade não é a ausência de compromissos, mas a capacidade de escolher.', author: '— Paulo Coelho' },
+  { text: 'O hábito é um cabo. Cada dia que não fumamos, rompemos um fio.', author: '— Horace Mann (adaptado)' },
+];
+
+let timerInterval = null;
+
+function pad(n) { return String(n).padStart(2, '0'); }
+
+function formatDateTime(date) {
+  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function save(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
+}
+
+function startJourney() {
+  const name = document.getElementById('input-name').value.trim();
+  const dateVal = document.getElementById('input-date').value;
+  if (!name || !dateVal) {
+    alert('Por favor, preencha seu nome e a data que parou de fumar.');
+    return;
+  }
+  const startTime = new Date(dateVal).getTime();
+  if (startTime > Date.now()) {
+    alert('A data não pode ser no futuro!');
+    return;
+  }
+  const data = { name, startTime };
+  save(data);
+  initDashboard(data);
+}
+
+function initDashboard(data) {
+  document.getElementById('setup-screen').style.display = 'none';
+  const dash = document.getElementById('dashboard');
+  dash.classList.add('visible');
+
+  document.getElementById('greeting').textContent = `Olá, ${data.name} 🌿`;
+  document.getElementById('since-date').textContent = formatDateTime(new Date(data.startTime));
+
+  // Random quote
+  const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+  document.getElementById('quote-text').textContent = q.text;
+  document.getElementById('quote-author').textContent = q.author;
+
+  tick(data.startTime);
+  timerInterval = setInterval(() => tick(data.startTime), 1000);
+}
+
+function tick(startTime) {
+  const elapsed = Date.now() - startTime;
+  const totalSecs = Math.floor(elapsed / 1000);
+  const days  = Math.floor(totalSecs / 86400);
+  const hours = Math.floor((totalSecs % 86400) / 3600);
+  const mins  = Math.floor((totalSecs % 3600) / 60);
+  const secs  = totalSecs % 60;
+
+  document.getElementById('t-days').textContent  = pad(days);
+  document.getElementById('t-hours').textContent = pad(hours);
+  document.getElementById('t-mins').textContent  = pad(mins);
+  document.getElementById('t-secs').textContent  = pad(secs);
+
+  // Stats
+  const totalMins = totalSecs / 60;
+  const cigarros = Math.floor((totalMins / (24 * 60)) * CIGARROS_DIA);
+  const dinheiro = ((cigarros / 20) * PRECO_MACO).toFixed(2);
+  const vidaHoras = Math.floor((cigarros * MIN_POR_CIGARRO) / 60);
+
+  document.getElementById('stat-cigarros').textContent = cigarros;
+  document.getElementById('stat-dinheiro').textContent = `R$${dinheiro}`;
+  document.getElementById('stat-vida').textContent = `+${vidaHoras}h`;
+
+  // Milestones
+  let achieved = 0;
+  const listEl = document.getElementById('milestone-list');
+  listEl.innerHTML = '';
+  MILESTONES.forEach(m => {
+    const done = totalMins >= m.minutes;
+    if (done) achieved++;
+    const el = document.createElement('div');
+    el.className = 'milestone-item' + (done ? ' achieved' : '');
+    el.innerHTML = `
+      <div class="milestone-dot"></div>
+      <div class="milestone-text">${m.label}</div>
+      <div class="milestone-time">${formatMilestone(m.minutes)}</div>
+    `;
+    listEl.appendChild(el);
+  });
+  document.getElementById('milestone-count').textContent = `${achieved} alcançados`;
+}
+
+function formatMilestone(minutes) {
+  if (minutes < 60) return `${minutes}min`;
+  if (minutes < 24 * 60) return `${minutes / 60}h`;
+  const days = minutes / (24 * 60);
+  if (days < 365) return days >= 30 ? `${Math.round(days / 30)}m` : `${days}d`;
+  return `${days / 365}a`;
+}
+
+function showResetModal() { document.getElementById('modal-overlay').classList.add('visible'); }
+function hideResetModal() { document.getElementById('modal-overlay').classList.remove('visible'); }
+
+function resetJourney() {
+  clearInterval(timerInterval);
+  localStorage.removeItem(STORAGE_KEY);
+  hideResetModal();
+  document.getElementById('dashboard').classList.remove('visible');
+  document.getElementById('setup-screen').style.display = '';
+  document.getElementById('input-name').value = '';
+  // Set default datetime to now
+  const now = new Date();
+  now.setSeconds(0, 0);
+  document.getElementById('input-date').value = now.toISOString().slice(0, 16);
+}
+
+// Init
+window.addEventListener('load', () => {
+  const data = load();
+  if (data && data.startTime && data.name) {
+    initDashboard(data);
+  } else {
+    const now = new Date();
+    now.setSeconds(0, 0);
+    document.getElementById('input-date').value = now.toISOString().slice(0, 16);
+  }
+});
+</script>
+</body>
+</html>
+
